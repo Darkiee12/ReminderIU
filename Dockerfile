@@ -4,3 +4,4 @@ COPY package*.json ./
 RUN bun install
 COPY . .
 RUN bun build ./src/index.ts --outdir ./build --target bun
+CMD ["bun", "run", "start"]
