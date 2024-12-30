@@ -5,7 +5,7 @@ import path from 'path';
 export const loadEvents = (client: Client): void => {
     const eventsPath = path.resolve(__dirname, '../events');
     const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.ts'));
-
+    // random comment
     for (const file of eventFiles) {
         const event = require(`${eventsPath}/${file}`);
         const eventName = file.split('.')[0];

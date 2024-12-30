@@ -1,7 +1,6 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { loadEvents } from './handlers/eventHandler';
-
 config();
 
 export const envVars = new Map<string, string | undefined>([['DISCORD_TOKEN', undefined], ['PREFIX', undefined]]);
