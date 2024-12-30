@@ -44,6 +44,13 @@ export default class CalendarService{
         return Ok(new CalendarService(id, title, date, time, event.tags, event.description, event.location));
     }
 
+    isPast(tz: TimeZone): boolean {
+        const dateTimeString = `${this.date.toString()}T${this.time.toString()}:00${tz.value}`;
+        const future = new Date(dateTimeString).valueOf();
+        return future <= Date.now();
+    }
+
+
     unixDiff(offset: { value: string }): number {
         const dateTimeString = `${this.date.toString()}T${this.time.toString()}:00${offset.value}`;
         const future = new Date(dateTimeString).valueOf();

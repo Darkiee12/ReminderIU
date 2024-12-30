@@ -1,7 +1,7 @@
 import { EmbedBuilder, Message, MessagePayload } from "discord.js";
 import BaseReminder from "./base";
 import UserService from "../services/UserService";
-import { Err, Ok, Result } from "../utils/types";
+import { Err, isErr, Ok, Result } from "../utils/types";
 import CalendarService from "../services/CalendarService";
 
 export class CalendarReminder extends BaseReminder{
@@ -102,6 +102,7 @@ export class CalendarReminder extends BaseReminder{
                 .setTitle(event.title.toString())
                 .setDescription(event.description || "No description was provided")
                 .addFields([
+                    { name: "ID", value: event.id.toString(), inline: true },
                     { name: "Date", value: event.date.toString(), inline: true },
                     { name: "Time", value: event.time.toString(), inline: true },
                     { name: "Timezone", value: this.user!.timezone.toString(), inline: true },
@@ -113,7 +114,7 @@ export class CalendarReminder extends BaseReminder{
     }
 
     async getNext(): Promise<void>{
-
+       
     }
 
     async getAllByTag(): Promise<void>{}
@@ -133,7 +134,8 @@ export class CalendarReminder extends BaseReminder{
         });
         if (errEv) return await this.send(errEv.message);
     
-        this.user?.addEvent(event);
+        const [_, err] = this.user?.addEvent(event)!;
+        if (err) return await this.send(err.message);
         const unix = event.unixDiff(this.user?.timezone!);
         if (unix < 0) return await this.send("Event must be in the future!");
         setTimeout(async () => {
@@ -144,6 +146,8 @@ export class CalendarReminder extends BaseReminder{
 
     async update(): Promise<void>{}
 
-    async deleteById(): Promise<void>{}
+    async deleteById(): Promise<void>{
+       
+    }
 
 }

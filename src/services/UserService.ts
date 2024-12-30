@@ -64,10 +64,25 @@ export default class UserService{
         }
     }
 
-    addEvent(event: CalendarService): void{
+    addEvent(event: CalendarService): Result<void>{
+        if(event.isPast(this.timezone)){
+            return Err("Event is in the past!");
+        }
         this.unsafeLoad();
         this.events.push(event);
         this.dump();
+        return Ok(void 0);
+    }
+
+    deleteEvent(id: number): Result<void>{
+        this.unsafeLoad();
+        const index = this.events.findIndex(event => event.id.value === id);
+        if(index === -1){
+            return Err("Event not found");
+        }
+        this.events.splice(index, 1);
+        this.dump();
+        return Ok(void 0);
     }
     
     dump(): void {
@@ -113,6 +128,13 @@ export default class UserService{
     public getActiveEvents(): CalendarService[]{
         this.unsafeLoad();
         return this.events.filter(event => event.unixDiff(this.timezone) > 0);
+    }
+
+    public getNextEvent(): CalendarService | undefined{
+        this.unsafeLoad();
+        const events = this.getActiveEvents()
+        if(events.length === 0) return undefined;
+        return events[events.length - 1];
     }
     
 
