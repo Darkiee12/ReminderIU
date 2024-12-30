@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY}/app:latest
+    image: ghcr.io/${GITHUB_REPOSITORY}/reminderiu:latest
     container_name: reminderiu
     build:
       context: .
@@ -8,6 +8,8 @@ services:
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       PREFIX: ${PREFIX}
+      DEV1: ${DEV1}
+      DEV2: ${DEV2}
     volumes:
       - .:/app
       - /app/node_modules
