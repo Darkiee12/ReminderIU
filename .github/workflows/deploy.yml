@@ -59,8 +59,9 @@ jobs:
                     else
                         echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > ./.env
                         echo "PREFIX=${{ secrets.PREFIX }}" >> ./.env
+                        echo "DEV1"=${{ secrets.DEV1 }} >> ./.env
+                        echo "DEV2"=${{ secrets.DEV2 }} >> ./.env
                         echo "GITHUB_REPOSITORY=$(echo '${{ github.repository }}' | awk '{print tolower($0)}')" >> .env
-                        docker logout ghcr.io
                     fi
         
 

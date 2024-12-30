@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY}/app:latest
+    image: ghcr.io/${GITHUB_REPOSITORY}/reminderiu:latest
     container_name: reminderiu
     build:
       context: .
