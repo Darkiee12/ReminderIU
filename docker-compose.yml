@@ -13,3 +13,4 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    command: bun run start
