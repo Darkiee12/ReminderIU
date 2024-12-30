@@ -24,7 +24,7 @@ jobs:
           - name: Build and publish a Docker image for ${{ github.repository }}/reminderiu
             uses: macbre/push-to-ghcr@master
             with:
-              dockerfile: .Dockerfile
+              dockerfile: Dockerfile
               image_name: ${{ github.repository }}/reminderiu
               github_token: ${{ secrets.GITHUB_TOKEN }}
         
