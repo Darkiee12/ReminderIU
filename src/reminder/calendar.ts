@@ -23,11 +23,11 @@ export class CalendarReminder extends BaseReminder{
         const embed = new EmbedBuilder()
             .setTitle("📅 Calendar Reminder Help")
             .setDescription(
-                "**Usage:** `!reminder calendar <subcommand> [options]`\n\n**Subcommands:**\n- get\n- getAll\n- getAllByTag\n- create\n- update\n- delete\n\nOptions:\n- t: Title (required)\n- d: Description (optional)\n- on: Date (required)\n- time: Time (required)\n- at: Location (optional)"
+                "**Usage:** `!remindme calendar <subcommand> [options]`\n\n**Subcommands:**\n- get\n- getAll\n- getAllByTag\n- create\n- update\n- delete\n\nOptions:\n- t: Title (required)\n- d: Description (optional)\n- on: Date (required)\n- time: Time (required)\n- at: Location (optional)"
             )
             .setColor("#1E90FF")
             .setFooter({
-                text: "Reminder Bot Help",
+                text: "Reminder IU",
                 iconURL: "https://example.com/help-icon.png",
             });
         this.send({ embeds: [embed] });
@@ -124,8 +124,54 @@ export class CalendarReminder extends BaseReminder{
     }
 
     async getNext(): Promise<void>{
-       
+        const event = this.user?.getNextEvent();
+
+        if (!event) {
+        const noEventEmbed = new EmbedBuilder()
+            .setTitle("📅 No Upcoming Events")
+            .setDescription("You have no upcoming events in your calendar. Relax 😊")
+            .setColor("#FFD700")
+            .setFooter({
+                text: "Use `!remindme calendar create` to add a new event.",
+                iconURL: "https://example.com/no-events-icon.png",
+            });
+        return await this.send({ embeds: [noEventEmbed] });
     }
+
+        const [user, err] = await this.user?.toUser()!;
+
+        if (err) {
+        const errorEmbed = new EmbedBuilder()
+            .setTitle("❌ User Not Found")
+            .setColor("#FF0000")
+            .setFooter({
+                iconURL: "https://example.com/error-icon.png",
+            });
+        return await this.send({ embeds: [errorEmbed] });
+    }
+
+        const embed = new EmbedBuilder()
+            .setAuthor({
+                name: user.displayName,
+                iconURL: user.displayAvatarURL()
+            })
+            .setTitle(`🔔 Upcoming Event: ${event.title}`)
+            .setDescription(event.description || "No description was provided")
+            .setColor("#1E90FF")
+            .addFields([
+                { name: "🆔 Event ID", value: event.id.toString(), inline: true },
+                { name: "📅 Date", value: event.date.toString(), inline: true },
+                { name: "⏰ Time", value: event.time.toString(), inline: true },
+                { name: "🌍 Timezone", value: this.user!.timezone.toString(), inline: true },
+                { name: "📍 Location", value: event.location || "N/A", inline: true },
+            ])
+            .setFooter({
+                text: "Reminder IU",
+                iconURL: "https://example.com/calendar-icon.png",
+            })
+        return await this.send({embeds: [embed]});
+    }
+
 
     async getAllByTag(): Promise<void>{}
 
@@ -190,7 +236,38 @@ export class CalendarReminder extends BaseReminder{
     async update(): Promise<void>{}
 
     async deleteById(): Promise<void>{
-       
+        const id = this.args.shift()?.toLowerCase();
+        if (!id) {
+            const errorEmbed = new EmbedBuilder()
+                .setTitle("❌ Missing Argument")
+                .setDescription("You must provide the ID of the event to delete.\n\n**Usage:** `!remindme calendar delete <id>`")
+                .setColor("#FF0000");
+            return await this.send({ embeds: [errorEmbed] });
+        }
+        const [_, err] = this.user?.deleteEvent(Number(id))!;
+
+        if (err) {
+            const errorEmbed = new EmbedBuilder()
+                .setTitle("❌ Wrong Event ID")
+                .setDescription(`Could not delete event with ID **${id}**.\n**Reason:** ${err.message}`)
+                .setColor("#FF0000")
+                .setFooter({
+                    text: "Please check the event ID and try again.",
+                    iconURL: "https://example.com/error-icon.png",
+                });
+            return await this.send({ embeds: [errorEmbed] });
+        }
+
+        const successEmbed = new EmbedBuilder()
+            .setTitle("🗑️ Event Deleted Successfully")
+            .setDescription(`Event with ID **${id}** has been deleted.`)
+            .setColor("#32CD32")
+            .setFooter({
+                text: "Reminder IU",
+                iconURL: "https://example.com/success-icon.png",
+        });
+
+        return await this.send({ embeds: [successEmbed] });
     }
 
 }
