@@ -20,7 +20,17 @@ export class CalendarReminder extends BaseReminder{
     }
 
     help(): void{
-        this.send("**Help:** Usage: !reminder calendar <subcommand> [options]\n\nSubcommands:\n- get\n- getAll\n- getAllByTag\n- create\n- update\n- delete\n\nOptions:\n- t: Title (required)\n- d: Description (optional)\n- on: Date (required)\n- time: Time (required)\n- at: Location (optional)");
+        const embed = new EmbedBuilder()
+            .setTitle("📅 Calendar Reminder Help")
+            .setDescription(
+                "**Usage:** `!reminder calendar <subcommand> [options]`\n\n**Subcommands:**\n- get\n- getAll\n- getAllByTag\n- create\n- update\n- delete\n\nOptions:\n- t: Title (required)\n- d: Description (optional)\n- on: Date (required)\n- time: Time (required)\n- at: Location (optional)"
+            )
+            .setColor("#1E90FF")
+            .setFooter({
+                text: "Reminder Bot Help",
+                iconURL: "https://example.com/help-icon.png",
+            });
+        this.send({ embeds: [embed] });
     }
 
     private parseOptions(args: string[]): Result<Record<string, string | undefined>> {
@@ -38,22 +48,22 @@ export class CalendarReminder extends BaseReminder{
             if (arg.startsWith("--")) {
                 currentKey = arg.slice(2);
                 if (!(currentKey in options)) {
-                    return Err(`Unknown option: --${currentKey}`);
+                    return Err(`❌Unknown option: --${currentKey}`);
                 }
                 if (options[currentKey] !== undefined) {
-                    return Err(`Duplicate option: --${currentKey}`);
+                    return Err(`❌Duplicate option: --${currentKey}`);
                 }
             } else if (currentKey) {
                 options[currentKey] = (options[currentKey] || "") + (options[currentKey] ? " " : "") + arg;
             } else {
-                return Err(`Unexpected argument: ${arg}`);
+                return Err(`❌Unexpected argument: ${arg}`);
             }
         }
     
         // Check for missing required arguments
-        if (!options.t) return Err("Missing required option: --t (title)");
-        if (!options.on) return Err("Missing required option: --on (date)");
-        if (!options.time) return Err("Missing required option: --time (time)");
+        if (!options.t) return Err("❌Missing required option: --t (title)");
+        if (!options.on) return Err("❌Missing required option: --on (date)");
+        if (!options.time) return Err("❌Missing required option: --time (time)");
     
         return Ok(options);
     }
@@ -120,7 +130,15 @@ export class CalendarReminder extends BaseReminder{
 
     async create(): Promise<void>{
         const [options, errPrse] = this.parseOptions(this.args);
-        if (errPrse) return await this.send(`${errPrse.message}\nUsage: !reminder calendar create --t <title> --on <date> --time <time> [--d <description>] [--at <location>]`);
+        if (errPrse){
+            const errorEmbed = new EmbedBuilder()
+                .setTitle("⚠️ Invalid Command")
+                .setDescription(
+                    `${errPrse.message}\n\n**Usage:**\n\`!reminder calendar create --t <title> --on <date> --time <time> [--d <description>] [--at <location>]\``
+                )
+                .setColor("#FF6347");
+            return await this.send({ embeds: [errorEmbed] });
+        }
         const { t, d, on, time, at } = options
         const [event, errEv] = CalendarService.fromJSON({
             id: Date.now(),
@@ -135,11 +153,36 @@ export class CalendarReminder extends BaseReminder{
     
         this.user?.addEvent(event);
         const unix = event.unixDiff(this.user?.timezone!);
-        if (unix < 0) return await this.send("Event must be in the future!");
+        if (unix < 0) {
+            const errorEmbed = new EmbedBuilder()
+                .setTitle("❌ Invalid Event Time")
+                .setDescription("Event must be in the future!")
+                .setColor("#FF0000");
+            return await this.send({ embeds: [errorEmbed] });
+        }
+
+        const embed = new EmbedBuilder()
+            .setTitle("🎉 Event Created Successfully!")
+            .setDescription(
+                `**Title:** ${event.title}\n**Date:** ${event.date}\n**Time:** ${event.time}`
+            )
+            .setColor("#32CD32")
+            .setFooter({
+                text: "Reminder IU",
+                iconURL: "https://example.com/success-icon.png",
+            });
+
         setTimeout(async () => {
-            await this.send(`${this.user?.mention()} Calendar was set: ${event.title.toString()}`);
+            const reminderEmbed = new EmbedBuilder()
+                .setTitle("⏰ Calendar was set!")
+                .setDescription(`**Event:** ${event.title}\n**Date:** ${event.date}\n**Time:** ${event.time}`)
+                .setColor("#FFD700")
+            await this.send({
+                content: `${this.user?.mention()}`,
+                embeds: [reminderEmbed],
+            });
         }, unix);
-        return await this.send(`Event created successfully`);
+        return await this.send({embeds:[embed]});
     }
 
     async update(): Promise<void>{}
