@@ -44,7 +44,7 @@ jobs:
                 username: root
                 key: ${{ secrets.SSH_PRIVATE_KEY }}
                 source: docker-compose.yml
-                target: .
+                target: ./app/docker-compose.yml
 
         -   name: Create .env file on droplet
             uses: appleboy/ssh-action@v1.1.0
@@ -53,7 +53,7 @@ jobs:
                 username: root
                 key: ${{ secrets.SSH_PRIVATE_KEY }}
                 script: |
-                    cd ~/dbcbot
+                    cd ~/app
                     if [ -f .env ]; then
                         echo ".env file exists"
                     else
@@ -76,7 +76,7 @@ jobs:
                 username: root
                 key: ${{ secrets.SSH_PRIVATE_KEY }}
                 script: |
-                    cd ~/dbcbot
+                    cd ~/app
                     export REPO=$(echo "${{ github.repository }}" | awk '{print tolower($0)}')
                     docker compose down
                     docker pull ghcr.io/$REPO/reminderiu

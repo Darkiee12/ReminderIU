@@ -1,8 +1,13 @@
 services:
   app:
+    image: ghcr.io/${GITHUB_REPOSITORY}/app:latest
+    container_name: reminderiu
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      PREFIX: ${PREFIX}
     volumes:
       - .:/app
       - /app/node_modules
