@@ -1,4 +1,4 @@
-import { Message, MessagePayload } from "discord.js";
+import { EmbedBuilder, Message, MessagePayload } from "discord.js";
 import BaseReminder from "./base";
 import UserService from "../services/UserService";
 import { Err, Ok, Result } from "../utils/types";
@@ -12,9 +12,7 @@ export class CalendarReminder extends BaseReminder{
     }
     dict(): { [key: string]: Function; } {
         return{
-            "get": this.get.bind(this),
-            "getAll": this.getAll.bind(this),
-            "getAllByTag": this.getAllByTag.bind(this),
+            "get": this.getIdx.bind(this),
             "create": this.create.bind(this),
             "update": this.update.bind(this),
             "delete": this.deleteById.bind(this)
@@ -77,11 +75,46 @@ export class CalendarReminder extends BaseReminder{
 
     }
 
-    async get(): Promise<void>{
-
+    async getIdx(): Promise<void>{
+        const idx: {[key: string]: Function} = {
+            "all": this.getAllActive.bind(this),
+            "next": this.getNext.bind(this),
+        }
+        const options = this.args.shift()?.toLowerCase();
+        if (!options) return await this.getNext();
+        const selection = idx[options];
+        if (!selection) return await this.getAllActive();
+        return await selection();
+        
     }
 
-    async getAll(): Promise<void>{}
+    async getAllActive(): Promise<void>{
+        const events = this.user?.getActiveEvents();
+        if (!events || events.length === 0) return await this.send("No events found");
+        const [user, err] = await this.user?.toUser()!;
+        if (err) return await this.send("User not found");
+        const embeds = events.map((event) => {
+            return new EmbedBuilder()
+                .setAuthor({
+                    name: user.displayName,
+                    iconURL: user.displayAvatarURL()
+                })
+                .setTitle(event.title.toString())
+                .setDescription(event.description || "No description was provided")
+                .addFields([
+                    { name: "Date", value: event.date.toString(), inline: true },
+                    { name: "Time", value: event.time.toString(), inline: true },
+                    { name: "Timezone", value: this.user!.timezone.toString(), inline: true },
+                    { name: "Location", value: event.location || "N/A", inline: true }
+                ])
+
+        });
+        return await this.send({embeds: embeds})
+    }
+
+    async getNext(): Promise<void>{
+
+    }
 
     async getAllByTag(): Promise<void>{}
 
@@ -99,10 +132,10 @@ export class CalendarReminder extends BaseReminder{
             tags: []
         });
         if (errEv) return await this.send(errEv.message);
+    
         this.user?.addEvent(event);
         const unix = event.unixDiff(this.user?.timezone!);
         if (unix < 0) return await this.send("Event must be in the future!");
-        this.user?.dump();
         setTimeout(async () => {
             await this.send(`${this.user?.mention()} Calendar was set: ${event.title.toString()}`);
         }, unix);

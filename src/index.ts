@@ -22,3 +22,5 @@ client.login(envVars.get('DISCORD_TOKEN')).then(() => {
 }).catch((err) => {
     console.error('Failed to log in:', err);
 });
+
+export default client;

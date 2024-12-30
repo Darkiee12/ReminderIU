@@ -48,6 +48,5 @@ export default class CalendarService{
         const dateTimeString = `${this.date.toString()}T${this.time.toString()}:00${offset.value}`;
         const future = new Date(dateTimeString).valueOf();
         return future - Date.now();
-        
     }
 }

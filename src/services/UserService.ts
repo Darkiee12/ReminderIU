@@ -4,6 +4,7 @@ import { Err, Ok, PositiveBigInt, Result, TimeZone } from '../utils/types';
 import * as fs from 'fs';
 import path from 'path';
 import CalendarService from './CalendarService';
+import client from '..';
 const makePath = (id: PositiveBigInt) => `/workspaces/final/data/${id.value}.json`;
 export default class UserService{
     /**
@@ -31,6 +32,16 @@ export default class UserService{
         return Ok(new UserService(id, timezone));
     }
 
+    async toUser(): Promise<Result<User>>{
+        try{
+            const user = await client.users.fetch(this.id.value.toString());
+            return Ok(user);
+        }catch(err){
+            return Err("User not found");
+        }
+    }
+
+
     static fromJSON(user: RUser): Result<UserService>{
         const [id, errId] = PositiveBigInt.fromString(user.id);
         if(errId){
@@ -54,7 +65,9 @@ export default class UserService{
     }
 
     addEvent(event: CalendarService): void{
+        this.unsafeLoad();
         this.events.push(event);
+        this.dump();
     }
     
     dump(): void {
@@ -66,7 +79,6 @@ export default class UserService{
         }
     
         fs.writeFileSync(path.resolve(filePath), JSON.stringify(this.toRUser(), null, 2), 'utf8');
-        console.log(`Dumped user ${this.id.value} at ${filePath}`);
     }
 
     static load(_id: string): Result<UserService>{
@@ -82,6 +94,27 @@ export default class UserService{
         const user: RUser = JSON.parse(data);
         return UserService.fromJSON(user);
     }
+
+    private unsafeLoad(): void{
+        const filePath = makePath(this.id);
+        const data = fs.readFileSync(filePath, 'utf8');
+        const user: RUser = JSON.parse(data);
+        const [timezone, err ]= TimeZone.fromString(user.timezone);
+        if(err) throw new Error(err.message);
+        this.timezone = timezone!;
+        this.tags = user.tags;
+        this.events = user.events.map(event => {
+            const [ev, err] = CalendarService.fromJSON(event);
+            if(err) throw new Error(err.message);
+            return ev!;
+        });
+    }
+
+    public getActiveEvents(): CalendarService[]{
+        this.unsafeLoad();
+        return this.events.filter(event => event.unixDiff(this.timezone) > 0);
+    }
+    
 
     mention(): string{
         return `<@${this.id.value}>`;
