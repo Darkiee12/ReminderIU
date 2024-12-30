@@ -56,4 +56,8 @@ export default class CalendarService{
         const future = new Date(dateTimeString).valueOf();
         return future - Date.now();
     }
+
+    update(event: CalendarService): void {
+        Object.assign(this, event);
+    }
 }

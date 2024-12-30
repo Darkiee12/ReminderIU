@@ -57,8 +57,12 @@ export class i32{
         return Number.isSafeInteger(value) ? Ok(new i32(value)) : Err("Value must be a 32-bit integer");
     }
 
-    toString(){
+    toString(): string{
         return this.value.toString();
+    }
+
+    equals(other: i32): boolean{
+        return this.value === other.value;
     }
 }
 

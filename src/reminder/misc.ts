@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 import BaseReminder from "./base";
 import UserService from "../services/UserService";
 
@@ -31,7 +31,12 @@ export class Misc extends BaseReminder {
 
     private async register() {
         function localHelp() {
-            return "This bot uses UTC time. To register please do !remindme register timezone. Example: !remindme register -5";
+            return {
+                embeds: [
+                    new EmbedBuilder()
+                    .setDescription("Usage: `!reminder register <timezone>`\n\nExample: `!reminder register +07:00`")
+                ]
+            }
         }
         if (this.args.length < 1) return await this.send(localHelp());
         const [user, errUsr] = UserService.fromDiscord(this.message.author, this.args[0]);

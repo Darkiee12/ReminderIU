@@ -1,6 +1,6 @@
 import { User } from 'discord.js';
-import { RUser } from '../models';
-import { Err, Ok, PositiveBigInt, Result, TimeZone } from '../utils/types';
+import { CalendarEvent, RUser } from '../models';
+import { Err, i32, Ok, PositiveBigInt, Result, TimeZone } from '../utils/types';
 import * as fs from 'fs';
 import path from 'path';
 import CalendarService from './CalendarService';
@@ -74,9 +74,9 @@ export default class UserService{
         return Ok(void 0);
     }
 
-    deleteEvent(id: number): Result<void>{
+    deleteEvent(id: i32): Result<void>{
         this.unsafeLoad();
-        const index = this.events.findIndex(event => event.id.value === id);
+        const index = this.events.findIndex(event => event.id.equals(id));
         if(index === -1){
             return Err("Event not found");
         }
@@ -128,6 +128,25 @@ export default class UserService{
     public getActiveEvents(): CalendarService[]{
         this.unsafeLoad();
         return this.events.filter(event => event.unixDiff(this.timezone) > 0);
+    }
+
+    public findEvent(id: number): CalendarService | undefined{
+        this.unsafeLoad();
+        return this.events.find(event => event.id.value === id);
+    }
+
+    public updateEvent(id: i32, event: CalendarService): Result<void>{
+        this.unsafeLoad();
+        const index = this.events.findIndex(event => event.id.equals(id));
+        if(index === -1){
+            return Err("Event not found");
+        }
+        if(event.isPast(this.timezone)){
+            return Err("Event is in the past!");
+        }
+        this.events[index].update(event);
+        this.dump();
+        return Ok(void 0);
     }
 
     public getNextEvent(): CalendarService | undefined{

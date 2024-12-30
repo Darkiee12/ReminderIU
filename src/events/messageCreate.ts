@@ -17,4 +17,10 @@ export const execute = async (client: Client, message: Message<true>): Promise<v
     if (command === 'remindme'){
         await reminder.execute(message, args);
     }
+
+    if (command === "credit"){
+        const dev1 = process.env.DEV1 || "";
+        const dev2 = process.env.DEV2 || "";
+        await message.channel.send(`This bot is developed by ${dev1} and ${dev2}.`);
+    }
 };
